@@ -72,7 +72,7 @@ class BrutalistMarkdown extends StatelessWidget {
       styleSheet: MarkdownStyleSheet(
         p: pStyle ?? TextStyle(fontSize: 16, height: 1.5, fontFamily: 'Courier', color: inkBlack),
         code: codeStyle ?? TextStyle(backgroundColor: Colors.black12, fontFamily: 'Courier', color: inkBlack),
-        codeblockDecoration: codeBlockDecoration ?? BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.zero),
+        codeblockDecoration: codeBlockDecoration ?? const BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.zero),
       ),
       extensionSet: md.ExtensionSet(
         md.ExtensionSet.gitHubFlavored.blockSyntaxes,
@@ -110,7 +110,8 @@ final ThemeData brutalistTheme = ThemeData(
     backgroundColor: paperBg, foregroundColor: inkBlack, elevation: 0, centerTitle: true,
     shape: Border(bottom: BorderSide(color: inkBlack, width: 3)),
   ),
-  cardTheme: CardTheme(
+  // FIXED FOR NEW SDK: CardThemeData and DialogThemeData
+  cardTheme: CardThemeData(
     color: paperBg, elevation: 0, margin: const EdgeInsets.only(bottom: 16),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: inkBlack, width: 2)),
   ),
@@ -134,8 +135,12 @@ final ThemeData brutalistTheme = ThemeData(
     enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: Colors.black, width: 2)),
     focusedBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: Colors.black, width: 3)),
   ),
-  dialogTheme: DialogTheme(backgroundColor: paperBg, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: Colors.black, width: 3))),
-  drawerTheme: DrawerThemeData(backgroundColor: paperBg, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: Colors.black, width: 2))),
+  dialogTheme: DialogThemeData(
+    backgroundColor: paperBg, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: Colors.black, width: 3))
+  ),
+  drawerTheme: DrawerThemeData(
+    backgroundColor: paperBg, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: Colors.black, width: 2))
+  ),
   dividerTheme: DividerThemeData(color: inkBlack, thickness: 2),
 );
 
@@ -305,6 +310,7 @@ class AppState extends ChangeNotifier {
     await prefs.setString('subCatOrd_$uid', jsonEncode(_subCategoryOrder));
   }
 
+  // File Organizers & Order logic
   List<String> getCategories() {
     Set<String> existing = _questions.map((q) => q.category).toSet();
     _categoryOrder.removeWhere((c) => !existing.contains(c));
@@ -717,7 +723,7 @@ class SubCategoryScreen extends StatelessWidget {
           final hasActiveState = appState.getActiveState(category, subCat) != null;
 
           return Card(
-            color: isCompleted ? Colors.grey.shade300 : paperBg,
+            color: isCompleted ? Colors.black12 : paperBg,
             child: ListTile(
               leading: Icon(isCompleted ? Icons.check_box : Icons.insert_drive_file, color: inkBlack),
               title: Text(subCat.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, decoration: isCompleted ? TextDecoration.lineThrough : null)),
@@ -854,8 +860,9 @@ class _ExamScreenState extends State<ExamScreen> {
   Widget build(BuildContext context) {
     final int minutes = _totalElapsed ~/ 60; final int seconds = _totalElapsed % 60;
 
-    return WillPopScope(
-      onWillPop: () async { _saveState(); return true; },
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (didPop) => _saveState(),
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -892,10 +899,7 @@ class _ExamScreenState extends State<ExamScreen> {
                   children:[
                     Text('ID: $qId[${idx + 1}/${widget.questions.length}]', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.grey)),
                     const Divider(height: 32),
-                    BrutalistMarkdown(
-                      data: question.text,
-                      pStyle: const TextStyle(fontSize: 18, height: 1.5, fontWeight: FontWeight.bold),
-                    ),
+                    BrutalistMarkdown(data: question.text, pStyle: const TextStyle(fontSize: 18, height: 1.5, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 32),
                     ...List.generate(question.options.length, (optIdx) {
                       bool isSelected = _answers[qId] == optIdx;
@@ -904,10 +908,7 @@ class _ExamScreenState extends State<ExamScreen> {
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(color: isSelected ? brassAccent.withOpacity(0.3) : paperBg, border: Border.all(color: inkBlack, width: isSelected ? 3 : 2)),
-                          child: Row(children:[
-                            Radio<int>(value: optIdx, groupValue: _answers[qId], activeColor: inkBlack, onChanged: (v) { setState(() => _answers[qId] = v!); _saveState(); }), 
-                            Expanded(child: BrutalistMarkdown(data: question.options[optIdx]))
-                          ]),
+                          child: Row(children:[Radio<int>(value: optIdx, groupValue: _answers[qId], activeColor: inkBlack, onChanged: (v) { setState(() => _answers[qId] = v!); _saveState(); }), Expanded(child: BrutalistMarkdown(data: question.options[optIdx]))]),
                         ),
                       );
                     }),
@@ -1128,7 +1129,7 @@ class GlobalStatsTab extends StatelessWidget {
           )),
         ),
         const SizedBox(height: 32), const Text('CATEGORY_BREAKDOWN', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 16),
-        ...categoryStats.map((stat) => Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        ...categoryStats.map((stat) => Card(child: Padding(padding: const EdgeInsets.all(16.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
           Text(stat['cat'].toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)), const Divider(),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[Text('ACCURACY: ${(stat['acc'] as double).toStringAsFixed(1)}%'), Text('AVG TIME/Q: ${(stat['avgTime'] as double).toStringAsFixed(1)}s')])
         ]))))
@@ -1181,7 +1182,7 @@ class _GlobalRecordsTabState extends State<GlobalRecordsTab> {
           final rec = allRecords[i]; final Question q = rec['q'];
           return Card(child: ListTile(
             leading: Text('${rec['time']}s', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            title: Text(q.text, maxLines: 2, overflow: TextOverflow.ellipsis), subtitle: Text('DIR: ${rec['sessionCat']}'),
+            title: BrutalistMarkdown(data: q.text, pStyle: const TextStyle(fontFamily: 'Courier')), subtitle: Text('DIR: ${rec['sessionCat']}'),
             trailing: Icon(rec['isCorrect'] ? Icons.check_box : Icons.cancel_presentation, color: rec['isCorrect'] ? steamGreen : rustRed),
           ));
         },
@@ -1238,7 +1239,7 @@ class OrganizeScreen extends StatelessWidget {
                           ]),
                           trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.black), onPressed: () => appState.deleteSubCategory(cat, subCat)),
                           children: appState.getQuestionsBySubCategory(cat, subCat).map((q) => ListTile(
-                            title: Text(q.text, maxLines: 1, overflow: TextOverflow.ellipsis),
+                            title: BrutalistMarkdown(data: q.text, pStyle: const TextStyle(fontFamily: 'Courier', overflow: TextOverflow.ellipsis)),
                             trailing: Row(mainAxisSize: MainAxisSize.min, children:[
                               IconButton(icon: const Icon(Icons.drive_file_move_outline, size: 20, color: Colors.black), onPressed: () => _moveQuestionDialog(context, q)),
                               IconButton(icon: const Icon(Icons.delete_forever, size: 20, color: Colors.black), onPressed: () => appState.deleteQuestion(q.id)),
