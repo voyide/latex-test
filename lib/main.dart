@@ -110,7 +110,6 @@ final ThemeData brutalistTheme = ThemeData(
     backgroundColor: paperBg, foregroundColor: inkBlack, elevation: 0, centerTitle: true,
     shape: Border(bottom: BorderSide(color: inkBlack, width: 3)),
   ),
-  // FIXED FOR NEW SDK: CardThemeData and DialogThemeData
   cardTheme: CardThemeData(
     color: paperBg, elevation: 0, margin: const EdgeInsets.only(bottom: 16),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero, side: BorderSide(color: inkBlack, width: 2)),
@@ -310,7 +309,6 @@ class AppState extends ChangeNotifier {
     await prefs.setString('subCatOrd_$uid', jsonEncode(_subCategoryOrder));
   }
 
-  // File Organizers & Order logic
   List<String> getCategories() {
     Set<String> existing = _questions.map((q) => q.category).toSet();
     _categoryOrder.removeWhere((c) => !existing.contains(c));
@@ -388,7 +386,6 @@ class AppState extends ChangeNotifier {
   void clearActiveState(String cat, String subCat) { _activeStates.remove(_stateKey(cat, subCat)); saveUserData(); notifyListeners(); }
   bool isCompleted(String cat, String subCat) => _sessions.any((s) => s.category == cat && s.subCategory == subCat);
 
-  // Cascading updates and deletes
   void renameCategory(String oldName, String newName) {
     for (var q in _questions) { if (q.category == oldName) q.category = newName; }
     for (var s in _sessions) { if (s.category == oldName) s.category = newName; } 
@@ -510,7 +507,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('USER_PROFILE')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(context).padding.bottom),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children:[
@@ -584,14 +581,86 @@ class ProfileScreen extends StatelessWidget {
 class ImportScreen extends StatelessWidget {
   const ImportScreen({super.key});
 
-  final String templateJson = '''[
+  final String templateJson = r'''[
   {
     "id": "q1",
     "category": "Physics",
     "subCategory": "Kinematics",
-    "text": "What is the formula for force? \$\$F = ma\$\$",
-    "options":["\$F = m/a\$", "\$F = ma\$", "\$F = m-a\$", "\$F = m+a\$"],
+    "text": "What is the formula for force according to Newton's Second Law?\n\n$$F = ma$$",
+    "options":["$F = m/a$", "$F = ma$", "$F = m-a$", "$F = m+a$"],
     "correctAnswerIndex": 1
+  },
+  {
+    "id": "q2",
+    "category": "Mathematics",
+    "subCategory": "Calculus",
+    "text": "Find the derivative of $f(x) = x^2$ with respect to $x$.",
+    "options":["$2x$", "$x$", "$x^2$", "$2$"],
+    "correctAnswerIndex": 0
+  },
+  {
+    "id": "q3",
+    "category": "Chemistry",
+    "subCategory": "Atomic Structure",
+    "text": "Which subatomic particle has a **negative** charge?",
+    "options":["Proton", "Neutron", "Electron", "Photon"],
+    "correctAnswerIndex": 2
+  },
+  {
+    "id": "q4",
+    "category": "Computer Science",
+    "subCategory": "Algorithms",
+    "text": "What is the worst-case time complexity of **QuickSort**?",
+    "options":["$O(n \\log n)$", "$O(n)$", "$O(n^2)$", "$O(1)$"],
+    "correctAnswerIndex": 2
+  },
+  {
+    "id": "q5",
+    "category": "Physics",
+    "subCategory": "Thermodynamics",
+    "text": "What is the absolute zero temperature in Celsius?",
+    "options":["$0^\\circ C$", "$-273.15^\\circ C$", "$100^\\circ C$", "$-100^\\circ C$"],
+    "correctAnswerIndex": 1
+  },
+  {
+    "id": "q6",
+    "category": "Mathematics",
+    "subCategory": "Algebra",
+    "text": "Solve for $x$ in the equation: $2x + 5 = 15$",
+    "options":["$5$", "$10$", "$15$", "$2$"],
+    "correctAnswerIndex": 0
+  },
+  {
+    "id": "q7",
+    "category": "Biology",
+    "subCategory": "Genetics",
+    "text": "Which base pairs with **Adenine** in a DNA molecule?",
+    "options": ["Cytosine", "Guanine", "Thymine", "Uracil"],
+    "correctAnswerIndex": 2
+  },
+  {
+    "id": "q8",
+    "category": "Computer Science",
+    "subCategory": "Data Structures",
+    "text": "Which data structure operates on a **LIFO** (Last In, First Out) principle?",
+    "options":["Queue", "Stack", "Linked List", "Tree"],
+    "correctAnswerIndex": 1
+  },
+  {
+    "id": "q9",
+    "category": "Mathematics",
+    "subCategory": "Trigonometry",
+    "text": "What is the value of $\\sin(90^\\circ)$?",
+    "options":["$0$", "$0.5$", "$1$", "$\\infty$"],
+    "correctAnswerIndex": 2
+  },
+  {
+    "id": "q10",
+    "category": "Logic",
+    "subCategory": "Syllogisms",
+    "text": "If all *A* are *B*, and some *B* are *C*, which of the following is necessarily true?",
+    "options":["All A are C", "Some A are C", "No A are C", "None of the above"],
+    "correctAnswerIndex": 3
   }
 ]''';
 
@@ -601,7 +670,7 @@ class ImportScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('IMPORT_DATA')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(context).padding.bottom),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children:[
@@ -611,16 +680,16 @@ class ImportScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children:[
-                  const Text('REFERENCE_JSON_STRUCTURE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('REFERENCE_JSON_STRUCTURE (10 QS)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 8),
-                  Text(templateJson, style: const TextStyle(fontSize: 12)),
-                  const SizedBox(height: 8),
+                  Text(templateJson, style: const TextStyle(fontSize: 10, height: 1.3)),
+                  const SizedBox(height: 16),
                   OutlinedButton.icon(
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: templateJson));
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('COPIED TO CLIPBOARD'), backgroundColor: Colors.black));
                     },
-                    icon: const Icon(Icons.copy, size: 16), label: const Text('COPY TEMPLATE'),
+                    icon: const Icon(Icons.copy, size: 16), label: const Text('COPY 10-Q TEMPLATE'),
                   )
                 ],
               ),
@@ -870,22 +939,24 @@ class _ExamScreenState extends State<ExamScreen> {
           actions:[IconButton(icon: const Icon(Icons.grid_view, color: Colors.black), onPressed: () => _scaffoldKey.currentState?.openEndDrawer())],
         ),
         endDrawer: Drawer(
-          child: Column(children:[
-            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(border: Border(bottom: BorderSide(color: inkBlack, width: 2))), child: const Text('PALETTE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
-            Expanded(child: GridView.builder(
-              padding: const EdgeInsets.all(16), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 8, mainAxisSpacing: 8), itemCount: widget.questions.length,
-              itemBuilder: (ctx, i) {
-                int sIdx = _statuses[widget.questions[i].id] ?? 0;
-                return GestureDetector(
-                  onTap: () { Navigator.pop(context); _goToIndex(i); },
-                  child: Container(
-                    decoration: BoxDecoration(color: _getStatusColor(sIdx), border: Border.all(color: _currentIndex == i ? Colors.white : inkBlack, width: _currentIndex == i ? 3 : 2)),
-                    alignment: Alignment.center, child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                );
-              },
-            )),
-          ]),
+          child: SafeArea(
+            child: Column(children:[
+              Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(border: Border(bottom: BorderSide(color: inkBlack, width: 2))), child: const Text('PALETTE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
+              Expanded(child: GridView.builder(
+                padding: const EdgeInsets.all(16), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 8, mainAxisSpacing: 8), itemCount: widget.questions.length,
+                itemBuilder: (ctx, i) {
+                  int sIdx = _statuses[widget.questions[i].id] ?? 0;
+                  return GestureDetector(
+                    onTap: () { Navigator.pop(context); _goToIndex(i); },
+                    child: Container(
+                      decoration: BoxDecoration(color: _getStatusColor(sIdx), border: Border.all(color: _currentIndex == i ? Colors.white : inkBlack, width: _currentIndex == i ? 3 : 2)),
+                      alignment: Alignment.center, child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  );
+                },
+              )),
+            ]),
+          ),
         ),
         body: Column(
           children:[
@@ -908,7 +979,10 @@ class _ExamScreenState extends State<ExamScreen> {
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(color: isSelected ? brassAccent.withOpacity(0.3) : paperBg, border: Border.all(color: inkBlack, width: isSelected ? 3 : 2)),
-                          child: Row(children:[Radio<int>(value: optIdx, groupValue: _answers[qId], activeColor: inkBlack, onChanged: (v) { setState(() => _answers[qId] = v!); _saveState(); }), Expanded(child: BrutalistMarkdown(data: question.options[optIdx]))]),
+                          child: Row(children:[
+                            Radio<int>(value: optIdx, groupValue: _answers[qId], activeColor: inkBlack, onChanged: (v) { setState(() => _answers[qId] = v!); _saveState(); }), 
+                            Expanded(child: BrutalistMarkdown(data: question.options[optIdx]))
+                          ]),
                         ),
                       );
                     }),
@@ -917,7 +991,8 @@ class _ExamScreenState extends State<ExamScreen> {
               },
             )),
             Container(
-              decoration: BoxDecoration(border: Border(top: BorderSide(color: inkBlack, width: 3)), color: paperBg), padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(border: Border(top: BorderSide(color: inkBlack, width: 3)), color: paperBg), 
+              padding: EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 8 + MediaQuery.of(context).padding.bottom),
               child: Column(children:[
                 Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children:[
                   OutlinedButton(onPressed: () { final qId = widget.questions[_currentIndex].id; setState(() { _answers.remove(qId); _statuses[qId] = QuestionStatus.notAnswered.index; }); _saveState(); }, child: const Text('CLEAR')),
@@ -1001,67 +1076,69 @@ class _SpecificAnalysisScreenState extends State<SpecificAnalysisScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('SPECIFIC_ANALYSIS_MATRIX')),
-      body: CustomScrollView(
-        slivers:[
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: inkBlack, width: 3)), color: brassAccent.withOpacity(0.1)),
-              child: Column(children:[
-                Text('TEST: ${widget.session.subCategory}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                const Divider(),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[const Text('SCORE:'), Text('${widget.session.score}/${widget.session.totalQuestions}', style: const TextStyle(fontWeight: FontWeight.bold))]),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[const Text('ACCURACY:'), Text('${perc.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold))]),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[const Text('AVG_TIME/Q:'), Text('${avgTime.toStringAsFixed(1)}s', style: const TextStyle(fontWeight: FontWeight.bold))]),
-              ]),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers:[
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(border: Border(bottom: BorderSide(color: inkBlack, width: 3)), color: brassAccent.withOpacity(0.1)),
+                child: Column(children:[
+                  Text('TEST: ${widget.session.subCategory}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Divider(),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[const Text('SCORE:'), Text('${widget.session.score}/${widget.session.totalQuestions}', style: const TextStyle(fontWeight: FontWeight.bold))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[const Text('ACCURACY:'), Text('${perc.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[const Text('AVG_TIME/Q:'), Text('${avgTime.toStringAsFixed(1)}s', style: const TextStyle(fontWeight: FontWeight.bold))]),
+                ]),
+              ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(border: Border(bottom: BorderSide(color: inkBlack, width: 2))),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[
-                const Text('SORT_OPTS:', style: TextStyle(fontWeight: FontWeight.bold)),
-                DropdownButton<SortMode>(
-                  value: _sortMode, dropdownColor: paperBg, underline: const SizedBox(),
-                  style: TextStyle(fontFamily: 'Courier', color: inkBlack, fontWeight: FontWeight.bold),
-                  items: const[DropdownMenuItem(value: SortMode.defaultOrder, child: Text('ERRORS_FIRST')), DropdownMenuItem(value: SortMode.timeAsc, child: Text('TIME_ASC (FAST)')), DropdownMenuItem(value: SortMode.timeDesc, child: Text('TIME_DESC (SLOW)'))],
-                  onChanged: (v) => setState(() => _sortMode = v!),
-                )
-              ]),
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(border: Border(bottom: BorderSide(color: inkBlack, width: 2))),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[
+                  const Text('SORT_OPTS:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  DropdownButton<SortMode>(
+                    value: _sortMode, dropdownColor: paperBg, underline: const SizedBox(),
+                    style: TextStyle(fontFamily: 'Courier', color: inkBlack, fontWeight: FontWeight.bold),
+                    items: const[DropdownMenuItem(value: SortMode.defaultOrder, child: Text('ERRORS_FIRST')), DropdownMenuItem(value: SortMode.timeAsc, child: Text('TIME_ASC (FAST)')), DropdownMenuItem(value: SortMode.timeDesc, child: Text('TIME_DESC (SLOW)'))],
+                    onChanged: (v) => setState(() => _sortMode = v!),
+                  )
+                ]),
+              ),
             ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((ctx, i) {
-              final q = sortedQs[i]; final uAns = widget.session.userAnswers[q.id];
-              final isCorrect = uAns == q.correctAnswerIndex; final timeS = widget.session.timePerQuestion[q.id] ?? 0;
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[
-                      Text(isCorrect ? '[VALID]' : (uAns == null ? '[NULL]' : '[ERROR]'), style: TextStyle(color: isCorrect ? steamGreen : rustRed, fontWeight: FontWeight.bold, fontSize: 18)),
-                      Text('TIME: ${timeS}s', style: const TextStyle(fontWeight: FontWeight.bold)),
+            SliverList(
+              delegate: SliverChildBuilderDelegate((ctx, i) {
+                final q = sortedQs[i]; final uAns = widget.session.userAnswers[q.id];
+                final isCorrect = uAns == q.correctAnswerIndex; final timeS = widget.session.timePerQuestion[q.id] ?? 0;
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children:[
+                        Text(isCorrect ? '[VALID]' : (uAns == null ? '[NULL]' : '[ERROR]'), style: TextStyle(color: isCorrect ? steamGreen : rustRed, fontWeight: FontWeight.bold, fontSize: 18)),
+                        Text('TIME: ${timeS}s', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ]),
+                      const Divider(height: 24), BrutalistMarkdown(data: q.text), const SizedBox(height: 16),
+                      ...List.generate(q.options.length, (optIdx) {
+                        bool correctOpt = optIdx == q.correctAnswerIndex; bool selectedOpt = optIdx == uAns;
+                        Color bg = paperBg; if (correctOpt) bg = steamGreen.withOpacity(0.3); else if (selectedOpt && !correctOpt) bg = rustRed.withOpacity(0.3);
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: bg, border: Border.all(color: inkBlack, width: correctOpt || selectedOpt ? 2 : 1)),
+                          child: Row(children:[
+                            if (correctOpt) const Icon(Icons.check, color: Colors.black) else if (selectedOpt) const Icon(Icons.close, color: Colors.black) else const SizedBox(width: 24),
+                            const SizedBox(width: 8), Expanded(child: BrutalistMarkdown(data: q.options[optIdx])),
+                          ]),
+                        );
+                      })
                     ]),
-                    const Divider(height: 24), BrutalistMarkdown(data: q.text), const SizedBox(height: 16),
-                    ...List.generate(q.options.length, (optIdx) {
-                      bool correctOpt = optIdx == q.correctAnswerIndex; bool selectedOpt = optIdx == uAns;
-                      Color bg = paperBg; if (correctOpt) bg = steamGreen.withOpacity(0.3); else if (selectedOpt && !correctOpt) bg = rustRed.withOpacity(0.3);
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: bg, border: Border.all(color: inkBlack, width: correctOpt || selectedOpt ? 2 : 1)),
-                        child: Row(children:[
-                          if (correctOpt) const Icon(Icons.check, color: Colors.black) else if (selectedOpt) const Icon(Icons.close, color: Colors.black) else const SizedBox(width: 24),
-                          const SizedBox(width: 8), Expanded(child: BrutalistMarkdown(data: q.options[optIdx])),
-                        ]),
-                      );
-                    })
-                  ]),
-                ),
-              );
-            }, childCount: sortedQs.length),
-          )
-        ],
+                  ),
+                );
+              }, childCount: sortedQs.length),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -1113,7 +1190,7 @@ class GlobalStatsTab extends StatelessWidget {
     });
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(context).padding.bottom),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children:[
         const Text('ACCURACY_GRAPH [%]', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 24),
         Container(
@@ -1177,7 +1254,7 @@ class _GlobalRecordsTabState extends State<GlobalRecordsTab> {
         ]),
       ),
       Expanded(child: ListView.builder(
-        padding: const EdgeInsets.all(16), itemCount: allRecords.length,
+        padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(context).padding.bottom), itemCount: allRecords.length,
         itemBuilder: (ctx, i) {
           final rec = allRecords[i]; final Question q = rec['q'];
           return Card(child: ListTile(
@@ -1209,6 +1286,7 @@ class OrganizeScreen extends StatelessWidget {
           : ReorderableListView.builder(
               itemCount: categories.length,
               onReorder: (oldIdx, newIdx) => appState.reorderCategory(oldIdx, newIdx),
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
               itemBuilder: (context, index) {
                 final cat = categories[index];
                 return Container(
